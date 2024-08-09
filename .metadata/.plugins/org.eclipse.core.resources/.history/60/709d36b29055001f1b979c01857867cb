@@ -1,0 +1,45 @@
+package com.example.demo.service;
+
+
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.example.demo.dto.ProductRequest;
+import com.example.demo.dto.ProductResponse;
+import com.example.demo.model.Product;
+import com.example.demo.repository.jpa.ProductRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class ProductService {
+
+   @Autowired
+   ProductRepository productRepository;
+
+    public void createProduct(ProductRequest productRequest) {
+    	  Product product = new Product();
+          product.setName(productRequest.name());
+          product.setPrice(productRequest.price());
+          product.setDescription(productRequest.description());
+          product.setSkuCode(UUID.randomUUID().toString());
+          productRepository.save(product);
+    }
+
+    public List<ProductResponse> getAllProducts() {
+        List<Product> products = productRepository.findAll();
+
+        return products.stream().map(this::mapToProductResponse).toList();
+    }
+
+    private ProductResponse mapToProductResponse(Product product) {
+        return new ProductResponse(product.getId(), product.getName(),
+                product.getDescription(), product.getPrice());
+    }
+}

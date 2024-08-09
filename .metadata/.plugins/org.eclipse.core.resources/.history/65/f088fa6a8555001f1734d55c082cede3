@@ -1,0 +1,2 @@
+public interface ProductElasticsearchRepository extends ElasticsearchRepository<Product,Long> {
+}

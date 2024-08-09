@@ -1,0 +1,12 @@
+package com.example.demo.client;
+
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+@FeignClient(name = "auth-service")
+public interface  AuthClient {
+	 @PostMapping("/auth/validateToken")
+	    UserDetails validateToken(@RequestParam("token") String token);
+}

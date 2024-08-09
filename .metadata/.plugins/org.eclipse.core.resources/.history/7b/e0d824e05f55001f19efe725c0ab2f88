@@ -1,0 +1,11 @@
+spring.application.name=product-service
+
+server.port=8182
+
+spring.datasource.url=jdbc:mysql://localhost:3306/orderservice?createDatabaseIfNotExist=true&useUnicode=yes&characterEncoding=UTF-8
+spring.datasource.username=root
+spring.datasource.password=123456
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.properties.hibernate.show_sql=true
+spring.jpa.hibernate.ddl-auto=update

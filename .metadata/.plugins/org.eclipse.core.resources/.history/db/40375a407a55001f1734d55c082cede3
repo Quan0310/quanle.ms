@@ -1,0 +1,16 @@
+spring.application.name=order-service
+
+server.port=8181
+
+spring.datasource.url=jdbc:mysql://localhost:3306/order_service?createDatabaseIfNotExist=true&useUnicode=yes&characterEncoding=UTF-8
+spring.datasource.username=root
+spring.datasource.password=123456
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.properties.hibernate.show_sql=true
+spring.jpa.hibernate.ddl-auto=update
+
+jwtCookieName= quanld
+jwtSecret= ledinhquanb20dcat146ledinhquanb20dcat146ledinhquanb20dcat146ledinhquanb20dcat146ledinhquanb20dcat146
+jwtExpirationMs= 36000000
+jwtRefreshExpirationMs= 86400000

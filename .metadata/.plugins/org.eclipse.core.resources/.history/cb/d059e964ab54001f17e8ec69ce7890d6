@@ -1,0 +1,12 @@
+package com.example.demo.client;
+
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+
+@FeignClient(name = "auth-service")
+public interface  AuthClient {
+	 @GetMapping("/api/auth/user-details")
+	    UserDetails getUserDetails(@RequestHeader("Authorization") String authHeader);
+}

@@ -1,0 +1,76 @@
+package com.example.demo.sercurity.jwt;
+
+import java.io.IOException;
+import java.util.Collection;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.util.StringUtils;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import com.example.demo.client.AuthClient;
+import com.example.demo.sercurity.services.UserDetailsDTO;
+import com.example.demo.sercurity.services.UserDetailsImpl;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+public class AuthTokenFilter extends OncePerRequestFilter {
+	@Autowired
+	private JwtUtils jwtUtils;
+
+	@Autowired
+	private AuthClient authClient;
+
+	private static final Logger logger = LoggerFactory.getLogger(AuthTokenFilter.class);
+
+	@Override
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+			throws ServletException, IOException {
+
+		try {
+			String jwt = request.getHeader("Authorization");
+			System.out.println("jwwt: "+ jwt);
+			ObjectMapper objectMapper = new ObjectMapper();
+			String userDetailsString = authClient.getUserDetails("Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJqWHMtLW05bGhFdEMyMHZ4Q2dvTjJKQWJaazktaTJ3YmZ5OUZ5NHEzRWxZIn0.eyJleHAiOjE3MjI0NTM0MjIsImlhdCI6MTcyMjQ1MzEyMiwianRpIjoiMmQ1YzM0ZGEtZWQ2My00MjJlLWI0MWItZmQ0NzliZGIxNWU4IiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MTgxL3JlYWxtcy9zcHJpbmctbWljcm9zZXJ2aWNlcy1zZWN1cml0eS1yZWFsbSIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiI1MmNmYThkNy0yYmYwLTQzOGMtYmVjZi1iNDg5NjMyMDFkNTQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJzcHJpbmctY2xpZW50LWNyZWRlbnRpYWxzLWlkIiwiYWNyIjoiMSIsImFsbG93ZWQtb3JpZ2lucyI6WyIvKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsib2ZmbGluZV9hY2Nlc3MiLCJkZWZhdWx0LXJvbGVzLXNwcmluZy1taWNyb3NlcnZpY2VzLXNlY3VyaXR5LXJlYWxtIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6InByb2ZpbGUgZW1haWwiLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsImNsaWVudEhvc3QiOiIxNzIuMTkuMC4xIiwicHJlZmVycmVkX3VzZXJuYW1lIjoic2VydmljZS1hY2NvdW50LXNwcmluZy1jbGllbnQtY3JlZGVudGlhbHMtaWQiLCJjbGllbnRBZGRyZXNzIjoiMTcyLjE5LjAuMSIsImNsaWVudF9pZCI6InNwcmluZy1jbGllbnQtY3JlZGVudGlhbHMtaWQifQ.XTfnwxuEvzMJp5wnDVTCY6BSNeWg2MY-YzCt_udsfxgj5uPd9_OjHxDCR3g656AotSeX474T6QkNcUgxWmKCw0SsaBClnoQOu2tO30RhIm5ECR1fQuEPUPaJpKgX-VYsc71LthZ1B69Tc6jKcqYgRcCa2z9e-pGpTQEHI3nZW3Ahfa3mUnh0pS45CJajPOZVPDCu2pPNrxmZkqp3qvYAz0cSrYkWU8SKsryObT6IkXIL9dU6d13NNJYVlMkew-MsrpKLA256Rald0cKrK5b8w9nX8vOl2K8XtKbPjNylUTZZy-H7KWBnEvCoxy6gFENujnW9PanwcnuVofqO8fNvuA");
+
+			UserDetailsDTO userDetailsDTO = objectMapper.readValue(userDetailsString, UserDetailsDTO.class);
+			Collection<? extends GrantedAuthority> authorities = userDetailsDTO.getAuthorities().stream()
+					.map(SimpleGrantedAuthority::new).collect(Collectors.toList());
+			UserDetails userDetails = new UserDetailsImpl(userDetailsDTO.getId(), userDetailsDTO.getUsername(),
+					userDetailsDTO.getEmail(), null, authorities);
+			System.out.println("userDetails: " + userDetails.toString());
+			UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails,
+					null, userDetails.getAuthorities());
+			authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+			SecurityContextHolder.getContext().setAuthentication(authentication);
+
+		} catch (Exception e) {
+			logger.error("Cannot set user authentication: {}", e.getMessage());
+		}
+
+		filterChain.doFilter(request, response);
+	}
+
+	private String parseJwt(HttpServletRequest request) {
+		String headerAuth = request.getHeader("Authorization");
+
+		if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
+			return headerAuth.substring(7, headerAuth.length());
+		}
+
+		return null;
+	}
+}

@@ -1,0 +1,49 @@
+package com.example.demo.controllers;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.demo.security.jwt.JwtUtils;
+import com.example.demo.security.services.UserDetailsImpl;
+import com.example.demo.security.services.UserDetailsServiceImpl;
+
+import jakarta.servlet.http.HttpServletRequest;
+
+@RestController
+@RequestMapping("/ofc")
+public class OpenFeignController {
+	@Autowired
+	JwtUtils jwtUtils;
+	@Autowired
+	UserDetailsServiceImpl detailsServiceImpl;
+	@GetMapping("/ud")
+	public UserDetailsImpl getUserDetail(Authentication authentication) {
+		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+		return userDetails;
+	}
+	
+	 @GetMapping("/user-details")
+	    public ResponseEntity<?> getUserDetails(@RequestHeader("Authorization") String authHeader) {
+	        String jwt = jwtUtils.parseJwt(authHeader);
+	        if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
+	            String username = jwtUtils.getUserNameFromJwtToken(jwt);
+	            UserDetails userDetails = detailsServiceImpl.subLoadUserByUsername(username);
+	            return ResponseEntity.ok(userDetails.get);
+	        }
+	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+	  
+	    }
+	 @GetMapping("/user-detailss")
+	    public String getUserDetailss(@RequestHeader("Authorization") String authHeader) {
+	        
+	        return authHeader;
+	    }
+}
